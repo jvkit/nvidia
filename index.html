@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>从 pandas 到 cuDF：21 天拿下 NVIDIA 加速数据科学认证 | NVIDIA 认证备考征文</title>
+<meta name="description" content="NVIDIA Certified Associate: Accelerated Data Science 备考全实录：报考初心、三周备考攻略、苏州开发者日线下考试流程与心得收获。">
+<meta property="og:title" content="从 pandas 到 cuDF：21 天拿下 NVIDIA 加速数据科学认证">
+<meta property="og:description" content="NCA 加速数据科学认证备考全实录：报考初心、三周攻略、线下考试亲测与成长收获。">
+<meta property="og:type" content="article">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23070A06'/%3E%3Cpath d='M9 22V10h7.2c3.4 0 5.8 2.4 5.8 6s-2.4 6-5.8 6H9z' fill='%2376B900'/%3E%3C/svg%3E">
+<style>
+  :root{
+    --bg:#070A06;
+    --bg-2:#0C120A;
+    --card:#0F150D;
+    --card-2:#131B10;
+    --line:#1F2B19;
+    --line-2:#2A3A22;
+    --green:#76B900;
+    --green-bright:#A6FF33;
+    --green-deep:#3D5C08;
+    --text:#DEE6D6;
+    --text-strong:#F2F7EC;
+    --muted:#8C9982;
+    --amber:#FFB454;
+    --mono:ui-monospace,"SF Mono","Cascadia Code","JetBrains Mono",Menlo,Consolas,monospace;
+    --sans:"PingFang SC","Hiragino Sans GB","Source Han Sans SC","Noto Sans SC","Microsoft YaHei",system-ui,sans-serif;
+    --max:780px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--sans);
+    font-size:17px;
+    line-height:1.95;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  ::selection{background:var(--green);color:#081005}
+  ::-webkit-scrollbar{width:10px}
+  ::-webkit-scrollbar-track{background:var(--bg)}
+  ::-webkit-scrollbar-thumb{background:var(--line-2);border-radius:5px}
+  ::-webkit-scrollbar-thumb:hover{background:var(--green-deep)}
+
+  /* ===== 进度条 ===== */
+  #progress{
+    position:fixed;top:0;left:0;height:3px;width:100%;
+    background:linear-gradient(90deg,var(--green-deep),var(--green),var(--green-bright));
+    transform-origin:0 50%;transform:scaleX(0);
+    z-index:100;
+  }
+
+  /* ===== Hero ===== */
+  .hero{
+    position:relative;
+    padding:110px 24px 130px;
+    text-align:center;
+    overflow:hidden;
+    background:
+      radial-gradient(1100px 520px at 50% -80px, rgba(118,185,0,.16), transparent 65%),
+      radial-gradient(700px 420px at 82% 115%, rgba(118,185,0,.07), transparent 60%),
+      linear-gradient(180deg,#0A0F08 0%, var(--bg) 100%);
+  }
+  .hero::before{
+    content:"";position:absolute;inset:0;
+    background:
+      repeating-linear-gradient(0deg, rgba(118,185,0,.055) 0 1px, transparent 1px 56px),
+      repeating-linear-gradient(90deg, rgba(118,185,0,.055) 0 1px, transparent 1px 56px);
+    -webkit-mask-image:radial-gradient(720px 480px at 50% 30%, #000 30%, transparent 75%);
+    mask-image:radial-gradient(720px 480px at 50% 30%, #000 30%, transparent 75%);
+    animation:gridDrift 26s linear infinite;
+  }
+  @keyframes gridDrift{from{background-position:0 0,0 0}to{background-position:0 56px,56px 0}}
+  .hero::after{
+    content:"";position:absolute;left:50%;bottom:0;transform:translateX(-50%);
+    width:min(680px,90%);height:1px;
+    background:linear-gradient(90deg,transparent,var(--green-deep) 30%,var(--green) 50%,var(--green-deep) 70%,transparent);
+    opacity:.7;
+  }
+  .hero-inner{position:relative;z-index:2;max-width:900px;margin:0 auto}
+  .kicker{
+    display:inline-flex;align-items:center;gap:10px;
+    font-family:var(--mono);font-size:12px;letter-spacing:.28em;
+    color:var(--green);text-transform:uppercase;
+    border:1px solid var(--line-2);border-radius:999px;
+    padding:8px 18px;background:rgba(118,185,0,.05);
+  }
+  .kicker .dot{width:6px;height:6px;border-radius:50%;background:var(--green-bright);box-shadow:0 0 10px var(--green);animation:pulse 2.2s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+  .hero h1{
+    margin:36px 0 22px;
+    font-size:clamp(30px,5.6vw,58px);
+    line-height:1.28;font-weight:800;color:var(--text-strong);
+    letter-spacing:.01em;
+  }
+  .hero h1 .grad{
+    background:linear-gradient(100deg,var(--green-bright) 5%,var(--green) 55%,#5a8f00 95%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .hero .sub{
+    font-size:clamp(15px,2.2vw,19px);color:var(--muted);
+    max-width:640px;margin:0 auto;
+  }
+  .hero .sub b{color:var(--text);font-weight:600}
+  .cert-line{
+    margin-top:26px;font-family:var(--mono);font-size:13px;color:var(--green);
+    letter-spacing:.08em;
+  }
+  .cert-line .sep{color:var(--line-2);margin:0 10px}
+  .hero-badge{margin:52px auto 0;width:172px;height:172px;position:relative}
+  .hero-badge svg{width:100%;height:100%;overflow:visible}
+  .ring-rotate{transform-origin:86px 86px;animation:spin 30s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .hero-stats{
+    display:flex;justify-content:center;gap:clamp(24px,6vw,64px);
+    margin-top:58px;flex-wrap:wrap;
+  }
+  .stat .num{
+    font-family:var(--mono);font-size:clamp(26px,4vw,40px);font-weight:700;
+    color:var(--green-bright);text-shadow:0 0 24px rgba(118,185,0,.35);
+  }
+  .stat .num i{font-style:normal;font-size:.55em;color:var(--green)}
+  .stat .lab{font-size:12px;letter-spacing:.22em;color:var(--muted);margin-top:4px}
+
+  /* ===== 终端卡片 ===== */
+  .terminal-wrap{max-width:640px;margin:64px auto 0;position:relative;z-index:2}
+  .terminal{
+    background:#0A0F07;
+    border:1px solid var(--line-2);
+    border-radius:12px;
+    box-shadow:0 24px 70px -24px rgba(0,0,0,.85), 0 0 0 1px rgba(118,185,0,.06), 0 0 46px -18px rgba(118,185,0,.28);
+    font-family:var(--mono);font-size:13px;line-height:2;
+    text-align:left;overflow:hidden;
+  }
+  .terminal .bar{
+    display:flex;align-items:center;gap:7px;
+    padding:11px 16px;border-bottom:1px solid var(--line);
+    background:rgba(255,255,255,.015);
+  }
+  .terminal .bar i{width:11px;height:11px;border-radius:50%;display:block}
+  .terminal .bar i:nth-child(1){background:#FF5F57}
+  .terminal .bar i:nth-child(2){background:#FEBC2E}
+  .terminal .bar i:nth-child(3){background:#28C840}
+  .terminal .bar span{margin-left:8px;color:var(--muted);font-size:11px;letter-spacing:.1em}
+  .terminal .body{padding:18px 20px 22px}
+  .terminal .p{color:var(--green)}
+  .terminal .c{color:var(--muted)}
+  .terminal .ok{color:var(--green-bright)}
+  .terminal .warn{color:var(--amber)}
+  .cursor{display:inline-block;width:8px;height:15px;background:var(--green);vertical-align:-2px;animation:blink 1.1s steps(1) infinite}
+  @keyframes blink{50%{opacity:0}}
+
+  /* ===== 吸顶导航 ===== */
+  .toc{
+    position:sticky;top:0;z-index:90;
+    background:rgba(7,10,6,.82);
+    -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+    border-bottom:1px solid var(--line);
+  }
+  .toc-inner{
+    max-width:var(--max);margin:0 auto;padding:10px 24px;
+    display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;
+  }
+  .toc-inner::-webkit-scrollbar{display:none}
+  .toc a{
+    flex:none;font-family:var(--mono);font-size:12px;letter-spacing:.06em;
+    color:var(--muted);text-decoration:none;
+    border:1px solid var(--line);border-radius:999px;
+    padding:6px 14px;transition:all .25s;
+  }
+  .toc a:hover{color:var(--green);border-color:var(--green-deep)}
+  .toc a.active{color:#081005;background:var(--green);border-color:var(--green);font-weight:700}
+
+  /* ===== 正文 ===== */
+  main{max-width:var(--max);margin:0 auto;padding:80px 24px 40px}
+  section{scroll-margin-top:72px}
+  .sec-head{display:flex;align-items:baseline;gap:18px;margin-bottom:14px}
+  .sec-no{
+    font-family:var(--mono);font-size:clamp(44px,7vw,64px);font-weight:700;
+    color:transparent;-webkit-text-stroke:1px var(--green-deep);
+    line-height:1;user-select:none;
+  }
+  h2{
+    font-size:clamp(23px,3.4vw,31px);font-weight:800;color:var(--text-strong);
+    line-height:1.4;
+  }
+  h2 em{font-style:normal;color:var(--green)}
+  .sec-sub{color:var(--muted);font-size:14px;margin-bottom:34px;padding-left:2px}
+  h3{
+    font-size:19px;font-weight:700;color:var(--text-strong);
+    margin:52px 0 16px;display:flex;align-items:center;gap:12px;
+  }
+  h3::before{content:"";width:18px;height:2px;background:var(--green);flex:none;box-shadow:0 0 8px rgba(118,185,0,.6)}
+  p{margin:0 0 22px}
+  p b,strong{color:var(--text-strong);font-weight:650}
+  a{color:var(--green)}
+  .drop{color:var(--text-strong)}
+
+  /* 术语 chip */
+  .tag{
+    font-family:var(--mono);font-size:.82em;color:var(--green);
+    background:rgba(118,185,0,.08);border:1px solid var(--green-deep);
+    border-radius:6px;padding:1px 7px;white-space:nowrap;
+  }
+
+  /* 引用 */
+  blockquote{
+    margin:30px 0;padding:18px 24px;
+    border-left:3px solid var(--green);
+    background:linear-gradient(90deg, rgba(118,185,0,.06), transparent 80%);
+    border-radius:0 10px 10px 0;
+    color:var(--text-strong);font-size:16.5px;
+  }
+  blockquote footer{margin-top:8px;font-size:13px;color:var(--muted);font-style:normal}
+
+  /* 时间线 */
+  .timeline{margin:34px 0 10px;padding-left:6px}
+  .tl-item{position:relative;padding:0 0 30px 34px;border-left:1px solid var(--line-2)}
+  .tl-item:last-child{border-left-color:transparent;padding-bottom:6px}
+  .tl-item::before{
+    content:"";position:absolute;left:-6px;top:8px;width:11px;height:11px;border-radius:50%;
+    background:var(--bg);border:2px solid var(--green);box-shadow:0 0 12px rgba(118,185,0,.5);
+  }
+  .tl-week{font-family:var(--mono);font-size:12px;letter-spacing:.2em;color:var(--green);margin-bottom:6px}
+  .tl-item h4{font-size:16.5px;color:var(--text-strong);font-weight:700;margin-bottom:8px}
+  .tl-item p{margin:0;font-size:15.5px;color:var(--text)}
+
+  /* 表格 */
+  .tablewrap{overflow-x:auto;margin:30px 0;border:1px solid var(--line);border-radius:12px}
+  table{width:100%;border-collapse:collapse;font-size:14.5px;min-width:620px}
+  thead th{
+    font-family:var(--mono);font-size:12px;letter-spacing:.14em;color:var(--green);
+    text-align:left;padding:13px 16px;background:rgba(118,185,0,.05);
+    border-bottom:1px solid var(--line-2);white-space:nowrap;
+  }
+  tbody td{padding:13px 16px;border-bottom:1px solid var(--line);vertical-align:top}
+  tbody tr:last-child td{border-bottom:none}
+  tbody tr:hover{background:rgba(118,185,0,.03)}
+  td b{color:var(--text-strong)}
+  td .mini{color:var(--muted);font-size:13px}
+
+  /* 提示 / 避坑卡 */
+  .callout{
+    border:1px solid var(--line);border-radius:12px;
+    padding:20px 22px 16px;margin:26px 0;background:var(--card);
+  }
+  .callout .label{
+    display:inline-block;font-family:var(--mono);font-size:11px;font-weight:700;
+    letter-spacing:.22em;border-radius:5px;padding:3px 10px;margin-bottom:12px;
+  }
+  .callout.tip{border-left:3px solid var(--green)}
+  .callout.tip .label{color:#081005;background:var(--green)}
+  .callout.pit{border-left:3px solid var(--amber)}
+  .callout.pit .label{color:#140C02;background:var(--amber)}
+  .callout h5{font-size:15.5px;color:var(--text-strong);font-weight:700;margin-bottom:6px}
+  .callout p{font-size:15px;margin-bottom:14px;color:var(--text)}
+  .callout p:last-child{margin-bottom:2px}
+
+  /* 成绩卡 */
+  .verdict{
+    margin:44px 0;padding:30px 28px;
+    border:1px solid var(--green-deep);border-radius:16px;
+    background:
+      radial-gradient(420px 180px at 85% 0%, rgba(118,185,0,.1), transparent 60%),
+      var(--card);
+    position:relative;overflow:hidden;
+  }
+  .verdict::before{
+    content:"PASS";position:absolute;right:-14px;bottom:-34px;
+    font-family:var(--mono);font-weight:800;font-size:120px;letter-spacing:-.04em;
+    color:rgba(118,185,0,.07);pointer-events:none;
+  }
+  .verdict .vd-title{font-family:var(--mono);font-size:12px;letter-spacing:.26em;color:var(--green);margin-bottom:14px}
+  .verdict dl{display:grid;grid-template-columns:1fr 1fr;gap:14px 24px;position:relative}
+  .verdict dt{font-size:12px;color:var(--muted);letter-spacing:.1em;margin-bottom:2px}
+  .verdict dd{font-family:var(--mono);font-size:15px;color:var(--text-strong)}
+  .verdict dd.pass{color:var(--green-bright);text-shadow:0 0 18px rgba(118,185,0,.5);font-weight:700}
+  @media(max-width:520px){.verdict dl{grid-template-columns:1fr}}
+
+  /* 证书占位 */
+  figure.cert{margin:40px 0}
+  .cert-slot{
+    border:1.5px dashed var(--line-2);border-radius:14px;
+    min-height:230px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
+    background:repeating-linear-gradient(45deg, rgba(118,185,0,.025) 0 12px, transparent 12px 24px), var(--card);
+    font-family:var(--mono);color:var(--muted);font-size:13px;text-align:center;padding:30px 20px;
+  }
+  .cert-slot .icon{font-family:var(--sans);font-size:26px;color:var(--green-deep)}
+  figure.cert figcaption{font-size:13px;color:var(--muted);text-align:center;margin-top:14px;line-height:1.8}
+  figure.cert img{width:100%;border-radius:14px;border:1px solid var(--line-2);display:block}
+
+  /* 资源列表 */
+  .res-list{margin:28px 0;counter-reset:res}
+  .res-item{
+    display:flex;gap:16px;padding:16px 18px;margin-bottom:12px;
+    border:1px solid var(--line);border-radius:12px;background:var(--card);
+    transition:border-color .25s, transform .25s;
+  }
+  .res-item:hover{border-color:var(--green-deep);transform:translateX(4px)}
+  .res-item::before{
+    counter-increment:res;content:"0" counter(res);
+    font-family:var(--mono);font-size:13px;color:var(--green);
+    border:1px solid var(--green-deep);border-radius:6px;
+    height:fit-content;padding:2px 8px;flex:none;margin-top:4px;
+  }
+  .res-item b{display:block;color:var(--text-strong);font-size:15.5px;margin-bottom:3px}
+  .res-item span{font-size:14px;color:var(--muted)}
+  .res-item .free{
+    font-family:var(--mono);font-size:11px;color:var(--green-bright);
+    background:rgba(118,185,0,.1);border-radius:4px;padding:1px 6px;margin-left:8px;
+  }
+
+  /* 结尾 */
+  .ending{
+    margin-top:70px;padding:34px 30px;
+    border:1px solid var(--line);border-radius:16px;
+    background:linear-gradient(160deg, var(--card-2), var(--card));
+    text-align:center;
+  }
+  .ending p{margin-bottom:10px}
+  .ending .last{font-family:var(--mono);color:var(--green);font-size:13.5px;letter-spacing:.12em;margin-top:18px}
+
+  /* ===== Footer ===== */
+  footer.site{
+    border-top:1px solid var(--line);margin-top:70px;
+    padding:44px 24px 56px;text-align:center;
+    background:linear-gradient(180deg, var(--bg), #090D07);
+  }
+  footer.site .f-mark{
+    font-family:var(--mono);font-size:12px;letter-spacing:.3em;color:var(--green);margin-bottom:18px;
+  }
+  footer.site p{color:var(--muted);font-size:13.5px;max-width:560px;margin:0 auto 10px;line-height:2}
+  footer.site .claim{
+    display:inline-block;margin-top:14px;font-family:var(--mono);font-size:11.5px;
+    border:1px solid var(--line-2);border-radius:999px;padding:6px 16px;color:var(--muted);
+  }
+
+  /* 回到顶部 */
+  #top{
+    position:fixed;right:22px;bottom:26px;z-index:80;
+    width:44px;height:44px;border-radius:12px;cursor:pointer;
+    border:1px solid var(--green-deep);background:rgba(10,15,7,.85);
+    -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+    color:var(--green);font-family:var(--mono);font-size:16px;
+    opacity:0;pointer-events:none;transition:all .3s;
+  }
+  #top.show{opacity:1;pointer-events:auto}
+  #top:hover{background:var(--green);color:#081005}
+
+  /* 入场动画 */
+  .reveal{opacity:0;transform:translateY(26px);transition:opacity .7s ease, transform .7s ease}
+  .reveal.in{opacity:1;transform:none}
+  @media (prefers-reduced-motion: reduce){
+    *,*::before,*::after{animation:none !important;transition:none !important}
+    .reveal{opacity:1;transform:none}
+  }
+
+  @media(max-width:640px){
+    body{font-size:16px}
+    .hero{padding:80px 20px 100px}
+    .terminal .body{font-size:12px}
+  }
+</style>
+<link rel="canonical" href="https://jvkit.cn/nvidia/">
+<meta property="og:site_name" content="JVKIT">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:type" content="website">
+<meta property="og:title" content="从 pandas 到 cuDF：21 天拿下 NVIDIA 加速数据科学认证">
+<meta property="og:description" content="NVIDIA Certified Associate: Accelerated Data Science 备考全实录：报考初心、三周备考攻略、苏州开发者日线下考试流程与心得收获。">
+<meta property="og:url" content="https://jvkit.cn/nvidia/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="从 pandas 到 cuDF：21 天拿下 NVIDIA 加速数据科学认证">
+<meta name="twitter:description" content="NVIDIA Certified Associate: Accelerated Data Science 备考全实录：报考初心、三周备考攻略、苏州开发者日线下考试流程与心得收获。">
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "WebPage", "name": "从 pandas 到 cuDF：21 天拿下 NVIDIA 加速数据科学认证", "description": "NVIDIA Certified Associate: Accelerated Data Science 备考全实录：报考初心、三周备考攻略、苏州开发者日线下考试流程与心得收获。", "url": "https://jvkit.cn/nvidia/", "inLanguage": "zh-CN"}</script>
+</head>
+<body>
+
+<div id="progress"></div>
+
+<!-- ================= HERO ================= -->
+<header class="hero">
+  <div class="hero-inner">
+    <span class="kicker"><span class="dot"></span>NVIDIA 认证备考经验线上征文 · 参赛作品</span>
+    <h1>从 <span style="color:var(--muted);text-decoration:line-through;text-decoration-color:var(--green-deep)">pandas</span> 到 <span class="grad">cuDF</span><br>21 天拿下 NVIDIA 加速数据科学认证</h1>
+    <p class="sub">一份写给「准 NVIDIA 认证考生」的全程实录：<b>报考初心 → 三周备考 → 苏州线下机考 → 收获与规划</b>，全程踩坑实拍，干货不加水分。</p>
+    <div class="cert-line">
+      NVIDIA Certified Associate<span class="sep">/</span>Accelerated Data Science<span class="sep">/</span>NCA 级
+    </div>
+
+    <div class="hero-badge" aria-hidden="true">
+      <svg viewBox="0 0 172 172">
+        <g class="ring-rotate">
+          <circle cx="86" cy="86" r="82" fill="none" stroke="#3D5C08" stroke-width="1" stroke-dasharray="4 7"/>
+          <path id="ringPath" d="M86,26 a60,60 0 1,1 -0.01,0" fill="none"/>
+          <text font-family="ui-monospace,Menlo,monospace" font-size="8.5" letter-spacing="2.6" fill="#76B900">
+            <textPath href="#ringPath">NVIDIA CERTIFIED ASSOCIATE • ACCELERATED DATA SCIENCE • </textPath>
+          </text>
+        </g>
+        <polygon points="86,46 121,66 121,106 86,126 51,106 51,66" fill="none" stroke="#76B900" stroke-width="1.4"/>
+        <polygon points="86,56 112,71 112,101 86,116 60,101 60,71" fill="rgba(118,185,0,.08)" stroke="#3D5C08" stroke-width="1"/>
+        <text x="86" y="83" text-anchor="middle" font-family="ui-monospace,Menlo,monospace" font-size="19" font-weight="700" fill="#A6FF33">NCA</text>
+        <text x="86" y="98" text-anchor="middle" font-family="ui-monospace,Menlo,monospace" font-size="7.5" letter-spacing="1.5" fill="#8C9982">CERTIFIED</text>
+      </svg>
+    </div>
+
+    <div class="hero-stats">
+      <div class="stat"><div class="num"><span data-count="21">0</span><i>天</i></div><div class="lab">有效备考</div></div>
+      <div class="stat"><div class="num"><span data-count="60">0</span><i>min</i></div><div class="lab">考试限时</div></div>
+      <div class="stat"><div class="num"><span data-count="50">0</span><i>题</i></div><div class="lab">闭卷机考</div></div>
+      <div class="stat"><div class="num"><span data-count="1">0</span><i>次</i></div><div class="lab">一次通过</div></div>
+    </div>
+
+    <div class="terminal-wrap">
+      <div class="terminal">
+        <div class="bar"><i></i><i></i><i></i><span>etl_benchmark — 10月16日 苏州</span></div>
+        <div class="body">
+<div><span class="p">$</span> spark-submit features.py <span class="c">--device cpu</span></div>
+<div><span class="c">reading parquet ......... </span><span class="warn">3h 42m</span></div>
+<div><span class="c">join + groupby .......... </span><span class="warn">core bound</span></div>
+<div>&nbsp;</div>
+<div><span class="p">$</span> python features.py <span class="c">--device gpu</span></div>
+<div><span class="c">cudf read_parquet ....... </span><span class="ok">6m 51s</span></div>
+<div><span class="c">groupby on GPU .......... </span><span class="ok">smiling</span></div>
+<div><span class="c">cert exam, closed book .. </span><span class="ok">50q / 60min / PASS</span></div>
+<div><span class="ok">✔ 这就是我报考的原因</span> <span class="cursor"></span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ================= TOC ================= -->
+<nav class="toc" aria-label="目录">
+  <div class="toc-inner">
+    <a href="#s1">01 报考初心</a>
+    <a href="#s2">02 备考实战</a>
+    <a href="#s3">03 考试日实录</a>
+    <a href="#s4">04 心得收获</a>
+    <a href="#s5">05 弹药库&证书</a>
+  </div>
+</nav>
+
+<main>
+
+  <!-- ============ 01 ============ -->
+  <section id="s1">
+    <div class="sec-head reveal"><span class="sec-no">01</span><h2>报考初心：<em>为什么是 NVIDIA 认证</em></h2></div>
+    <p class="sec-sub reveal">一个 pandas 老兵的算力焦虑</p>
+
+    <p class="reveal"><span class="drop">先交代背景：</span>我做数据相关工作几年了，<span class="tag">pandas</span> 和 <span class="tag">scikit-learn</span> 是吃饭家伙。日子本来很平静，直到业务数据从百万行涨到亿级——一条特征管道跑四个小时，CPU 集群排队能排到我下班。而隔壁搞深度学习的同事，显卡一响，同样的活几分钟交卷。</p>
+
+    <p class="reveal">瓶颈不在模型，在<b>数据预处理</b>。这是那次之后我认下的判断，也是后面整个备考路上反复被验证的一句话：GPU 不是只属于深度学习的，整个数据科学工作流都可以被加速。</p>
+
+    <p class="reveal">至于为什么选 NVIDIA 认证，而不是云厂商那一排认证，我的理由很实际：</p>
+
+    <blockquote class="reveal">
+      云认证绑定单一平台、偏重运维视角；而 NVIDIA 认证讲的是「加速计算」本身——从 GPU 原理到 <span class="tag">RAPIDS</span> 数据科学栈，知识是横跨云和本地、跟着人走的。再叠加 NVIDIA 在加速计算生态里的位置，这张证的行业背书是真的硬。
+      <footer>—— 当时记在备忘录里的原话</footer>
+    </blockquote>
+
+    <p class="reveal">还有一个朴素的原因：<b>DLI（NVIDIA 深度学习学院）有配套的官方学习路径</b>，考什么、学什么、去哪学，链条是闭的。对在职党来说，「路径清晰」四个字比什么都值钱。正好赶上 10 月 15–16 日苏州 NVIDIA 中国开发者日活动，现场就有认证考试场次——我立刻报了名，顺便给自己造了一个没法拖延的 deadline。</p>
+  </section>
+
+  <!-- ============ 02 ============ -->
+  <section id="s2">
+    <div class="sec-head reveal"><span class="sec-no">02</span><h2>备考实战：<em>三周冲刺全攻略</em></h2></div>
+    <p class="sec-sub reveal">考纲即边界 · 代码动手 · 错题本收口</p>
+
+    <p class="reveal">我给自己的有效备考时间是 <b>21 天</b>，每天工作日 1–1.5 小时、周末各半天。总策略就三句话：<b>以官方考纲为边界不做无效扩展、所有知识点用代码跑一遍、最后用错题本收口。</b></p>
+
+    <h3 class="reveal">三周作战地图</h3>
+    <div class="timeline reveal">
+      <div class="tl-item">
+        <div class="tl-week">WEEK 1 · 打地基</div>
+        <h4>GPU 基础 + 官方课程通读</h4>
+        <p>过完 DLI 官方《Fundamentals of Accelerated Data Science》课程，重点理解 GPU 为什么适合数据科学：海量核心、吞吐优先于延迟、<span class="tag">PCIe</span> 带宽与显存这两个决定性约束。同时在 Colab 的免费 T4 上把一份自己的 pandas notebook 改写成 <span class="tag">cuDF</span>——亲身体会「API 几乎无缝」是什么感觉。</p>
+      </div>
+      <div class="tl-item">
+        <div class="tl-week">WEEK 2 · 主线攻坚</div>
+        <h4>把 RAPIDS 全家桶敲一遍</h4>
+        <p><span class="tag">cuML</span> 对照 sklearn 做映射实验；<span class="tag">cuGraph</span> 跑了一遍图分析样例；用 <span class="tag">Dask</span> 体验多卡/分布式 DataFrame；搞清楚 <span class="tag">RAPIDS Accelerator for Apache Spark</span> 到底加速了 Spark 的哪一段。开始刷官方样题，每道题回溯到考纲条目，同步整理笔记。</p>
+      </div>
+      <div class="tl-item">
+        <div class="tl-week">WEEK 3 · 收口</div>
+        <h4>错题本 + 概念盲区扫尾</h4>
+        <p>错题二刷，主攻概念辨析：<span class="tag">NGC</span> 容器目录、<span class="tag">Triton</span> / <span class="tag">TensorRT</span> 在推理链路里的位置、<span class="tag">NVLink</span>、<span class="tag">MIG</span>、统一内存这些名词卡。最后三天每两天一次计时模拟，练节奏也练心态。</p>
+      </div>
+    </div>
+
+    <h3 class="reveal">五大知识域拆解</h3>
+    <p class="reveal">按我的备考笔记，把知识域和复习抓手整理成一张表（精力分配仅供参考）：</p>
+    <div class="tablewrap reveal">
+      <table>
+        <thead>
+          <tr><th>知识域</th><th>我的精力</th><th>关键点 / 抓手</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><b>GPU 加速基础</b></td><td>20%</td><td>PCIe 与显存约束、数据传输开销、数据驻留（data locality）、什么时候 GPU 反而更慢</td></tr>
+          <tr><td><b>cuDF 数据处理</b></td><td>25%</td><td>与 pandas 的 API 映射与差异、何时回退 CPU、ETL 全流程实操</td></tr>
+          <tr><td><b>cuML 机器学习</b></td><td>20%</td><td>sklearn 对照实验、参数与数据规模的关系、模型选择的场景判断</td></tr>
+          <tr><td><b>规模扩展</b></td><td>20%</td><td>Dask 分布式、多卡协同、RAPIDS 加速 Spark 的适用场景</td></tr>
+          <tr><td><b>生态与部署</b></td><td>15%</td><td>NGC 容器、Triton / TensorRT 概念级认知、端到端工作流名词辨析</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="reveal">刷题方法：不做题海，做「回溯」</h3>
+    <p class="reveal">样题数量有限，我的用法是：<b>每道题都写出「考点 + 依据」</b>——这个考点在官方课程哪一章、对应哪个概念。写不出来就说明知识域有洞，回去补。遇到拿不准的术语就做一张名词卡（比如「统一内存是什么、解决什么问题」），通勤时翻。题不在多，在于每道题都变成知识网的锚点。</p>
+
+    <div class="callout pit reveal">
+      <span class="label">坑 01</span>
+      <h5>在小数据集上测加速比，得出「GPU 没用」的错误结论</h5>
+      <p>我在几万行的数据上对比 pandas 和 cuDF，发现 GPU 还更慢，差点劝退。原因很简单：CPU↔GPU 的数据拷贝开销是固定的，数据量不过阈值根本摊不平。测试加速比，数据必须够大。</p>
+    </div>
+    <div class="callout pit reveal">
+      <span class="label">坑 02</span>
+      <h5>只背 API，不练「方案选型」</h5>
+      <p>考试里有大量情景题：给你一个工作流和瓶颈描述，问该怎么选工具。它考的是「何时用、为什么用」，不是「怎么调用」。光背 API 签名是过不了关的，要练用自己的话把每个组件的适用边界讲清楚。</p>
+    </div>
+    <div class="callout pit reveal">
+      <span class="label">坑 03</span>
+      <h5>中文资料术语滞后，概念对不上号</h5>
+      <p>部分中文教程的译名和官方文档对不齐。概念题里一个术语认错，整题就废了。后期我全部以官方文档的英文术语为准，笔记里中英对照着写。</p>
+    </div>
+
+    <div class="callout tip reveal">
+      <span class="label">提示</span>
+      <h5>RAPIDS 最高效的学习姿势：迁移，而不是重学</h5>
+      <p>cuDF / cuML 的 API 设计对 pandas / sklearn 用户极度友好。正确的打开方式不是从零学一套新框架，而是拿一份你亲手写过的旧 notebook 做迁移练习——每一个报错、每一处行为差异，都是最值钱的考点。</p>
+    </div>
+  </section>
+
+  <!-- ============ 03 ============ -->
+  <section id="s3">
+    <div class="sec-head reveal"><span class="sec-no">03</span><h2>考试日实录：<em>苏州开发者日现场</em></h2></div>
+    <p class="sec-sub reveal">10 月 16 日 · 线下机考全流程</p>
+
+    <p class="reveal"><span class="drop">考试当天，</span>上午还在会场听 keynote，下午提前一小时到认证考试区。流程比想象中顺畅：<b>核验报名信息与身份证件 → 手机统一存放 → 入座机考</b>。现场环境安静，监考很正规，桌上可以要草稿纸（我全程就画了一张数据流图压惊）。</p>
+
+    <p class="reveal">以我这一场为例：<b>50 道选择题，限时 60 分钟，闭卷机考；单选为主、穿插多选</b>。有个很厚道的设计：<b>多选题会直接标注「本题有几个正确选项」</b>——排错范围瞬间收窄，不用瞎猜选项个数。我的做题策略是三遍法：第一遍快速过、拿不准的先标记跳过；第二遍集中攻坚标记题；最后留几分钟回头检查。多选题我的原则是「先排除、后凑数」：先把确定错的删掉，剩下的拿不准也要选满标注的数量——既然官方都告诉你答案有几个了，空着不选满才是真的亏。</p>
+
+    <p class="reveal">印象最深的反而是心态管理。坐我旁边的大哥提前半小时交卷走人，我盯着屏幕一度有点慌——后来想想，<b>认证考试比的是过线，不是排名</b>。把它当成一次「付费的全真模拟」，反而发挥得稳。交卷那一刻其实心里没底，当晚收到通过邮件时，在工位上没忍住握了个拳。</p>
+
+    <p class="reveal">唯一想吐槽的：这次通过的人太多，<b>现场发的 NVIDIA 小徽章，排到我的时候已经发光了</b>——痛失实体战利品一枚，只能拿电子证书自我安慰。好在证书在 NVIDIA 认证门户可以直接下载 PDF，当晚就安排进了简历和领英。</p>
+
+    <div class="verdict reveal">
+      <div class="vd-title">// EXAM RESULT — 2026.10 苏州</div>
+      <dl>
+        <div><dt>考试科目</dt><dd>Accelerated Data Science</dd></div>
+        <div><dt>认证级别</dt><dd>NVIDIA Certified Associate</dd></div>
+        <div><dt>考试形式</dt><dd>线下闭卷机考 · 50 题 / 60 min</dd></div>
+        <div><dt>备考周期</dt><dd>21 天（工作日 1–1.5h）</dd></div>
+        <div><dt>考试地点</dt><dd>NVIDIA 中国开发者日 · 苏州</dd></div>
+        <div><dt>结果</dt><dd class="pass">PASS ✔ 一次通过</dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <!-- ============ 04 ============ -->
+  <section id="s4">
+    <div class="sec-head reveal"><span class="sec-no">04</span><h2>心得收获：<em>比证书更值钱的东西</em></h2></div>
+    <p class="sec-sub reveal">认知升级 · 思维转变 · 下一步</p>
+
+    <h3 class="reveal">认知：GPU 不是「更快」，是「更宽」</h3>
+    <p class="reveal">备考前我对 GPU 的理解是「深度学习专用加速器」。备考后我的版本是：<b>GPU 是一台吞吐机器，而数据科学的瓶颈恰恰常常出在吞吐环节——读取、清洗、join、聚合。</b>把整条工作流搬到 GPU 上，收益往往比只加速模型训练大得多。这个视角的切换，是这 21 天里我认为最值钱的收获。</p>
+
+    <h3 class="reveal">思维：先画瓶颈图，再谈加速</h3>
+    <p class="reveal">以前优化习惯是「哪里慢点哪里」。现在我会先老老实实 profiling，画出整条管道的耗时分布——如果瓶颈在 IO，堆再多功能卡也是白搭。<b>加速比永远由最慢的那一段决定</b>，这个朴素的道理，在做题和实战里反复应验。</p>
+
+    <h3 class="reveal">实战：已经落地的收益</h3>
+    <p class="reveal">考完回来，我把组里一条亿级行的特征管道做了 RAPIDS 试点迁移，ETL 耗时从小时级压到了分钟级（具体加速比和场景强相关，仅分享个人案例，不做承诺）。更直接的是求职侧的体感：JD 上「熟悉 GPU 加速数据科学 / RAPIDS」这类要求，从「看着发虚」变成了「可以聊聊」。</p>
+
+    <h3 class="reveal">给后来者的三句话</h3>
+    <blockquote class="reveal">
+      一、早报名，用 deadline 对抗拖延，线下考试场次是天然的冲刺发令枪；<br>
+      二、动手大于收藏夹，一份亲手迁移的 notebook 胜过十篇教程；<br>
+      三、考纲就是最好的 todo list，边界清晰，别在考纲外的深水区自我感动。
+    </blockquote>
+
+    <p class="reveal">至于下一步：Associate 只是起点，我计划继续挑战 NVIDIA 认证体系里更高级别的 Professional 认证，同时把 RAPIDS 引入更多生产管道。学习这件事，考上瘾了，就停不下来。</p>
+  </section>
+
+  <!-- ============ 05 ============ -->
+  <section id="s5">
+    <div class="sec-head reveal"><span class="sec-no">05</span><h2>弹药库 <em>&amp;</em> 证书展示</h2></div>
+    <p class="sec-sub reveal">我全部的备考资源，拿走不谢</p>
+
+    <div class="res-list reveal">
+      <div class="res-item"><div><b>DLI 官方课程：Fundamentals of Accelerated Data Science</b><span>与本认证直接对应的官方学习路径，考纲的原文出处，第一优先级。</span><span class="free">官方配套</span></div></div>
+      <div class="res-item"><div><b>RAPIDS 官方文档与 GitHub（cuDF / cuML / cuGraph）</b><span>术语和行为的最终裁定标准，备考后期我基本只看它。</span></div></div>
+      <div class="res-item"><div><b>NGC Catalog（NVIDIA GPU 加速容器目录）</b><span>生态类考点的实体化教材，把每个关键容器的定位看懂。</span></div></div>
+      <div class="res-item"><div><b>Colab / Kaggle 免费 GPU</b><span>没有卡的兄弟的救命稻草，T4 跑 RAPIDS 入门实验完全够用。</span><span class="free">免费</span></div></div>
+      <div class="res-item"><div><b>NVIDIA 认证官方页面与样题</b><span>考纲 + 样题是唯二的「官方信号源」，其他一切资料围绕它们展开。</span></div></div>
+    </div>
+
+    <!-- 证书原图 certificate.png；如需隐去姓名可自行打码后替换 -->
+    <figure class="cert reveal">
+      <img src="certificate.png" alt="NVIDIA Certified Associate: Accelerated Data Science 证书">
+      <figcaption>图 1 · NVIDIA Certified Associate: Accelerated Data Science 证书（2026.10.16 于苏州 NVIDIA 中国开发者日通过）。<br>顺便补一刀：现场的小徽章发完了，没领到，所以只有证书照。</figcaption>
+    </figure>
+
+    <div class="ending reveal">
+      <p><b>以经验共赴成长，以学识赋能前行。</b></p>
+      <p>如果这篇实录帮你少踩了一个坑、多了一份报考的底气，那它就完成了使命。</p>
+      <p>考场见，祝你一次通过。</p>
+      <p class="last">$ nvidia-smi &nbsp;—&nbsp; see you on the fast lane ⚡</p>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site">
+  <div class="f-mark">// NVIDIA CERTIFICATION ESSAY · 2026</div>
+  <p>本文为「NVIDIA 认证备考经验线上征文」参赛作品（主办：GPUS 开发者社区，活动时间 2026.10.20–10.30）。</p>
+  <p>报考科目：NVIDIA Certified Associate: Accelerated Data Science · 线下考点：苏州 NVIDIA 中国开发者日。</p>
+  <p>全文 100% 原创手打，证书为本人真实持有，首发于个人站点，未经授权请勿转载。</p>
+  <span class="claim">100% ORIGINAL · FIRST PUBLISHED ON PERSONAL SITE</span>
+</footer>
+
+<button id="top" aria-label="回到顶部">↑</button>
+
+<script>
+(function(){
+  var bar=document.getElementById('progress');
+  var top=document.getElementById('top');
+  var ticking=false;
+  function onScroll(){
+    if(ticking)return;ticking=true;
+    requestAnimationFrame(function(){
+      var h=document.documentElement;
+      var max=h.scrollHeight-h.clientHeight;
+      var r=max>0?h.scrollTop/max:0;
+      bar.style.transform='scaleX('+r+')';
+      top.classList.toggle('show',h.scrollTop>600);
+      ticking=false;
+    });
+  }
+  window.addEventListener('scroll',onScroll,{passive:true});
+  onScroll();
+  top.addEventListener('click',function(){window.scrollTo({top:0,behavior:'smooth'})});
+
+  var links=document.querySelectorAll('.toc a');
+  var map={};
+  links.forEach(function(a){map[a.getAttribute('href').slice(1)]=a});
+  var io=new IntersectionObserver(function(es){
+    es.forEach(function(e){
+      if(e.isIntersecting){
+        links.forEach(function(a){a.classList.remove('active')});
+        var a=map[e.target.id];
+        if(a)a.classList.add('active');
+      }
+    });
+  },{rootMargin:'-30% 0px -60% 0px'});
+  document.querySelectorAll('main section').forEach(function(s){io.observe(s)});
+
+  var rio=new IntersectionObserver(function(es){
+    es.forEach(function(e){
+      if(e.isIntersecting){e.target.classList.add('in');rio.unobserve(e.target)}
+    });
+  },{threshold:.08});
+  document.querySelectorAll('.reveal').forEach(function(el){rio.observe(el)});
+
+  var cio=new IntersectionObserver(function(es){
+    es.forEach(function(e){
+      if(!e.isIntersecting)return;
+      var el=e.target,end=parseInt(el.dataset.count,10),t0=null;
+      function step(ts){
+        if(!t0)t0=ts;
+        var p=Math.min((ts-t0)/900,1);
+        el.textContent=Math.round(end*(1-Math.pow(1-p,3)));
+        if(p<1)requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+      cio.unobserve(el);
+    });
+  },{threshold:.5});
+  document.querySelectorAll('[data-count]').forEach(function(el){cio.observe(el)});
+})();
+</script>
+</body>
+</html>
